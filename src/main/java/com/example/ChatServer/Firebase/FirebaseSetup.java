@@ -11,18 +11,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 @Service
 public class FirebaseSetup {
 
-    @Value("${firebase.config.path}")
-    private Resource serviceAccountResource;
+//    @Value("${firebase.config.path}")
+//    private Resource serviceAccountResource;
 
     @Bean
     public FirebaseApp FirebaseSetup() throws IOException {
-        try (InputStream serviceAccount = serviceAccountResource.getInputStream()) {
+        try (FileInputStream serviceAccount = new FileInputStream("/etc/secrets/SpringChatapp.json");
+        ) {
             if (FirebaseApp.getApps().isEmpty()) { // Initialize only if not already initialized
                 FirebaseOptions options = new FirebaseOptions.Builder()
                         .setCredentials(GoogleCredentials.fromStream(serviceAccount))

@@ -2,8 +2,6 @@
 FROM maven:3.9-eclipse-temurin-21 AS builder
 WORKDIR /build
 COPY . .
-RUN --mount=type=secret,id=SpringChatapp,dst=/etc/secrets/SpringChatapp.json \
-    cat /etc/secrets/SpringChatapp.json
 RUN mvn clean package -DskipTests
 
 
