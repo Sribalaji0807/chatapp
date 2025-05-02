@@ -31,5 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
-!/target/classes/SpringChatapp.json
+/target/classes/SpringChatapp.json
 
