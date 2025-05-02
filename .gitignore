@@ -32,4 +32,5 @@ build/
 ### VS Code ###
 .vscode/
 /target/classes/SpringChatapp.json
+/resources/SpringChatapp.json
 
