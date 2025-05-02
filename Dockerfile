@@ -11,7 +11,7 @@ WORKDIR /src
 COPY --from=builder /build/target/*.jar app.jar
 
 
-EXPOSE 8080
+EXPOSE 8084
 ENTRYPOINT ["java", "-jar", "app.jar"]
 #CMD ["/bin/sh", "-c", "if [ -f /etc/secrets/SpringChatapp.json ]; then echo '✅ Secret found'; else echo '❌ Secret missing'; fi && java -jar app.jar"]
 
