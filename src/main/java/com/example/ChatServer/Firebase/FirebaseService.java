@@ -10,10 +10,9 @@ import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.database.GenericTypeIndicator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.print.Doc;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -92,6 +91,43 @@ public void StoreMailBox(MessageSchema messageSchema,String username){
         System.out.println(e.getMessage());
 
     }
+}
+@GetMapping("/api/StoredMessages")
+public List<MessageSchema> getStoredMessages(@RequestParam String userid){
+    List<MessageSchema> messages = new ArrayList<>();
+    System.out.println("userid"+userid);
+
+    try{
+    DocumentReference docRef= firestore.collection("users").document(userid);
+    ApiFuture<DocumentSnapshot> future=docRef.get();
+    DocumentSnapshot document=future.get();
+    if (document.exists()) {
+        List<Map<String, Object>> messageMaps = (List<Map<String, Object>>) document.get("mailBox");
+
+        if (messageMaps != null) {
+            for (Map<String, Object> messageMap : messageMaps) {
+                MessageSchema message = new MessageSchema();
+                message.setMessage((String) messageMap.get("message"));
+                message.setSendBy((String) messageMap.get("sendBy"));
+                message.setSendTo((String) messageMap.get("sendTo"));
+                message.setTime((String) messageMap.get("Time"));
+
+                messages.add(message);
+            }
+        }
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("mailBox", new ArrayList<>()); // Empty list
+
+        docRef.update(updates);
+    }
+}
+catch (FirestoreException  | InterruptedException e){
+    System.out.println(e);
+
+} catch (ExecutionException e) {
+    throw new RuntimeException(e);
+}
+    return messages;
 }
 
 //@PostMapping("/api/Contacts")
