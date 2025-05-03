@@ -102,10 +102,10 @@ public List<MessageSchema> getStoredMessages(@RequestParam String userid){
     ApiFuture<DocumentSnapshot> future=docRef.get();
     DocumentSnapshot document=future.get();
     if (document.exists()) {
-        List<Map<String, Object>> messageMaps = (List<Map<String, Object>>) document.get("mailBox");
+        List<Map<String, String>> messageMaps = (List<Map<String, String>>) document.get("mailBox");
 
         if (messageMaps != null) {
-            for (Map<String, Object> messageMap : messageMaps) {
+            for (Map<String, String> messageMap : messageMaps) {
                 MessageSchema message = new MessageSchema();
                 message.setMessage((String) messageMap.get("message"));
                 message.setSendBy((String) messageMap.get("sendBy"));
