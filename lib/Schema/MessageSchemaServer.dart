@@ -19,4 +19,7 @@ class MessageSchemaServer {
       time: json['time'] as String,
     );
   }
-}
+
+  static List<MessageSchemaServer> fromJsonList(List<dynamic> jsonList) {
+    return jsonList.map((json) => MessageSchemaServer.fromJson(json)).toList();
+  }}

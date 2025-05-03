@@ -8,10 +8,10 @@ import 'package:chatapp/ux/SharedPreferences.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'dart:convert';
-
 
 class SocketConnection {
   late StompClient stompClient;
@@ -37,7 +37,35 @@ class SocketConnection {
     stompClient.activate();
   }
 
-  void onConnectCallback(StompFrame connectFrame) {
+  void onConnectCallback(StompFrame connectFrame) async {
+    final prefs = getIt<SharedPreferencesService>();
+
+    final response = await http.get(
+      Uri.parse(
+        "${dotenv.env["SERVER_URL"]}/api/StoredMessages?userid=$userid",
+      ),
+    );
+    print(response.body);
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
+      final messages = MessageSchemaServer.fromJsonList(
+        jsonDecode(response.body),
+      );
+      print(messages);
+      if (messages.length > 0) {
+        String sender = prefs.findContacts(messages[0].sendBy);
+        for (var message in messages) {
+        await  HiveService().setMessage(
+            "${userid}${sender}",
+            MessageSchema(
+              message.message,
+              message.sendBy,
+              message.sendTo,
+              message.time,
+            ),
+          );
+        }
+      }
+    }
     stompClient.subscribe(
       destination: '/user/$username/queue/messages',
       callback: (StompFrame frame) {
@@ -66,14 +94,23 @@ class SocketConnection {
             print("rawBody ${rawBody}");
             final Map<String, dynamic> messageJson = jsonDecode(rawBody);
             print("messageJson: ${messageJson["message"]}");
-final message = MessageSchemaServer.fromJson(
-  (messageJson as Map<String, dynamic>).cast<String, String>()
-);
+            final message = MessageSchemaServer.fromJson(
+              (messageJson as Map<String, dynamic>).cast<String, String>(),
+            );
             print("message: ${message.message}");
-         final prefs= getIt<SharedPreferencesService>();
-    String senderid= prefs.findContacts(message.sendTo!=username?message.sendTo:message.sendBy);
-print("sender id ${senderid}");
-                HiveService().setMessage("${userid}${senderid}", MessageSchema(message.message, message.sendBy, message.sendTo, message.time));
+            String senderid = prefs.findContacts(
+              message.sendTo != username ? message.sendTo : message.sendBy,
+            );
+            print("sender id ${senderid}");
+            HiveService().setMessage(
+              "${userid}${senderid}",
+              MessageSchema(
+                message.message,
+                message.sendBy,
+                message.sendTo,
+                message.time,
+              ),
+            );
             print("message added");
           } catch (e) {
             print("Error processing message: $e");

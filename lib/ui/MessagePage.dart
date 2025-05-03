@@ -135,7 +135,7 @@ void _addMessage(types.Message message) {
   @override
   Widget build(BuildContext context) {
     final credentials = ref.watch(credentialsProvider);
-    username = credentials.username;
+    username = credentials.username ?? "";
     //  List<types.Message> messages = [];
     //     try {
     //       messages = ref.watch(chatProvider);
