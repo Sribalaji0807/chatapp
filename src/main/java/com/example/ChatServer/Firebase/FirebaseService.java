@@ -115,10 +115,10 @@ public List<MessageSchema> getStoredMessages(@RequestParam String userid){
                 messages.add(message);
             }
         }
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("mailBox", new ArrayList<>()); // Empty list
-
-        docRef.update(updates);
+//        Map<String, Object> updates = new HashMap<>();
+//        updates.put("mailBox", new ArrayList<>()); // Empty list
+//
+//        docRef.update(updates);
     }
 }
 catch (FirestoreException  | InterruptedException e){
