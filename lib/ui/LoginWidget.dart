@@ -1,4 +1,5 @@
 import 'package:chatapp/ui/Main_page.dart';
+import 'package:chatapp/ui/SignUpWidget.dart';
 import 'package:chatapp/ux/FirebaseService.dart';
 import 'package:chatapp/ux/GetIt.dart';
 import 'package:flutter/material.dart';
@@ -67,21 +68,25 @@ class _LoginWidgetState extends ConsumerState<LoginWidget> {
                         content: Text("Please enter email and password"),
                         duration: Duration(seconds: 1),
                       ),
-                    );  return;
+                    );
+                    return;
                   }
-                  bool res= await Firebaseservice().Login(emailController.text, passwordController.text);
-                 
-                    Getit().RegisterSocketConnection();
-Navigator.pushAndRemoveUntil(
-  context,
-  MaterialPageRoute(builder: (context) => const Main_Page()),
-  (Route<dynamic> route) => false,
-);
-                  
+                  bool res = await Firebaseservice().Login(
+                    emailController.text,
+                    passwordController.text,
+                  );
+
+                  Getit().RegisterSocketConnection();
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const Main_Page()),
+                    (Route<dynamic> route) => false,
+                  );
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text("Login successful"),
-                      duration: const Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 1000),
                     ),
                   );
                 },
@@ -92,7 +97,17 @@ Navigator.pushAndRemoveUntil(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text("Don't have an account?"),
-                TextButton(onPressed: () {}, child: Text("Sign Up")),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const Signupwidget()
+                      ),
+                    );
+                  },
+                  child: Text("Sign Up"),
+                ),
               ],
             ),
           ],

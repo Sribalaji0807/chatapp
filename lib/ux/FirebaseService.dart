@@ -45,7 +45,7 @@ class Firebaseservice {
       password: password,
     );
     if (userCredential.user != null) {
-        FirebaseAuth.instance.authStateChanges().listen((user) {
+      FirebaseAuth.instance.authStateChanges().listen((user) {
         if (user != null) {
           // The user is signed in
           print('User signed in: ${user.email}');
@@ -55,7 +55,7 @@ class Firebaseservice {
         }
       });
       final token = await userCredential.user!.getIdToken() as String;
-print("${dotenv.env['SERVER_URL']}/api/Login");
+      print("${dotenv.env['SERVER_URL']}/api/Login");
       final response = await http.post(
         Uri.parse("${dotenv.env["SERVER_URL"]}/api/Login"),
         headers: {"Content-Type": "application/json"},
@@ -98,16 +98,35 @@ print("${dotenv.env['SERVER_URL']}/api/Login");
   }
 
   Future<Map<String, String>> getContacts() async {
+    final refs = ProviderContainer();
+    final userid = refs.read(credentialsProvider).userid;
     final response = await http.get(
-      Uri.parse("http://localhost:8084/api/Contacts"),
+      Uri.parse("${dotenv.env['SERVER_URL']}/api/GetContacts?userid=${userid}"),
     );
-
-    if (response.statusCode == 200) {
+    print(response.body);
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
       Map<String, dynamic> jsonResponse = json.decode(response.body);
       Map<String, String> contacts = Map<String, String>.from(jsonResponse);
+      print("contacts ${contacts}");
       return contacts;
     } else {
       throw Exception('Failed to load contacts');
     }
+  }
+
+  Future<bool> addContacts(String friendid, String userid) async {
+    try {
+      final response = await http.post(
+        Uri.parse("${dotenv.env['SERVER_URL']}/api/AddContacts"),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"friendid": friendid, "userid": userid}),
+      );
+      if (response.statusCode == 200) {
+        return true;
+      }
+    } catch (e) {
+      print("error $e");
+    }
+    return false;
   }
 }

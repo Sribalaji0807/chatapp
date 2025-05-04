@@ -30,7 +30,7 @@ class _ContactPageState extends State<ContactPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Contact")),
-      body: ListView.builder(
+      body:contacts.isEmpty? Center(child:const Text("No Contacts")): ListView.builder(
         itemCount: contacts.length,
         itemBuilder: (context, index) => contactContainer(contacts[index]),
       ),
@@ -39,11 +39,12 @@ class _ContactPageState extends State<ContactPage> {
 
   Future<void> getContacts() async {
     Map<String, String> Contacts = {};
+    Contacts =await getIt<Firebaseservice>().getContacts();
     final SharedPreferences prefs = getIt<SharedPreferences>();
-String contactsJson = prefs.getString('Contacts')!;
-print(contactsJson);
-  
-    Contacts = await Map<String, String>.from(json.decode(contactsJson));
+ prefs.setString('Contacts', json.encode(Contacts))!;
+//print(contactsJson);
+  print("contacts ${Contacts}");
+   // Contacts = await Map<String, String>.from(json.decode(contactsJson));
     setState(() {
     contacts = Contacts.keys.toList();
     contactsMap = Contacts;

@@ -1,4 +1,5 @@
 import 'package:chatapp/ui/ContactPage.dart';
+import 'package:chatapp/ui/QrWidget.dart';
 import 'package:flutter/material.dart';
 
 class Main_Page extends StatefulWidget {
@@ -13,6 +14,7 @@ int SelectedIndex = 0;
 
 final List<Widget> _pages=[
   ContactPage(),
+  QrWidget(),
 ];
 
   @override

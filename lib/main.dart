@@ -1,6 +1,7 @@
 import 'package:chatapp/db/MessageSchema.dart';
 import 'package:chatapp/ui/ContactPage.dart';
 import 'package:chatapp/ui/MessagePage.dart';
+import 'package:chatapp/ui/ProfilePage.dart';
 import 'package:chatapp/ui/SignUpWidget.dart';
 import 'package:chatapp/ux/GetIt.dart';
 import 'package:chatapp/ux/Provider.dart';
@@ -38,7 +39,7 @@ class MyApp extends ConsumerWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home:LoginWidget(),
+      home:ProfilePage(),
      // home: user.username == null ? LoginWidget() : const ContactPage(),
       debugShowCheckedModeBanner: false,
     );
