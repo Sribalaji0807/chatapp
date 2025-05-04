@@ -1,6 +1,7 @@
 package com.example.ChatServer.Firebase;
 
 import com.example.ChatServer.MessageSchema;
+import com.example.ChatServer.RestBodyModel.AddContactModel;
 import com.example.ChatServer.RestBodyModel.SignUpModel;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
@@ -130,12 +131,63 @@ catch (FirestoreException  | InterruptedException e){
     return messages;
 }
 
-//@PostMapping("/api/Contacts")
-//public Map<String,String> getContacts(@RequestBody String username){
-//    DocumentReference docRef = firestore.collection("users").where("name",isEqualTo:username).get();
-//    ApiFuture<DocumentSnapshot> future = docRef.get();
-//    DocumentSnapshot document = future.get();
-//}
+@GetMapping("/api/GetContacts")
+public Map<String,String> getContacts(@RequestParam String userid){
+    Map<String,String> Contacts;
+    try {
+        DocumentReference docRef=firestore.collection("users").document(userid);
+        DocumentSnapshot snapshot=docRef.get().get();
+        if(snapshot.exists()){
+            Map<String,Object> rec=snapshot.getData();
+            Contacts = (Map<String, String>) rec.get("contacts_RoomId");
+return Contacts;
+        }
+    }
+    catch (FirestoreException | InterruptedException | ExecutionException e){
+        System.out.println(e);
+    }
+    return null;
+}
+
+@PostMapping("/api/AddContacts")
+public boolean AddContacts(@RequestBody AddContactModel body) throws ExecutionException, InterruptedException {
+    DocumentReference docRefUser = firestore.collection("users").document(body.getUserId());
+    DocumentReference docRefFriend = firestore.collection("users").document(body.getFriendId());
+
+    DocumentSnapshot snapshot = docRefUser.get().get();
+    DocumentSnapshot snapshot1=docRefFriend.get().get();
+
+
+    if (snapshot.exists() && snapshot1.exists()) {
+        Map<String, Object> docData = snapshot.getData();
+        Map<String,Object> docData1=snapshot1.getData();
+        Map<String, String> contacts = (Map<String, String>) docData.get("contacts_RoomId");
+        Map<String, String> contacts1 = (Map<String, String>) docData1.get("contacts_RoomId");
+
+        if (contacts == null) {
+            contacts = new HashMap<>();
+        }
+        if (contacts1 == null) {
+            contacts1 = new HashMap<>();
+        }
+
+        contacts.put(docData1.get("name").toString(), body.getFriendId());
+
+        Map<String, Object> updateMap = new HashMap<>();
+        updateMap.put("contacts_RoomId", contacts);
+
+        docRefUser.set(updateMap, SetOptions.merge());
+        updateMap.remove("contacts_RoomId");
+        contacts1.put(docData.get("name").toString(), body.getUserId());
+
+
+        updateMap.put("contacts_RoomId", contacts1);
+        docRefFriend.set(updateMap, SetOptions.merge());
+
+return true;
+    }
+return false;
+}
 
 //@PostMapping("/api/Contacts")
 //public boolean addContacts(String id1,String id2){
