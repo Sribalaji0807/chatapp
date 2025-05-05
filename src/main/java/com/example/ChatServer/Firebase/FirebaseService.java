@@ -8,13 +8,11 @@ import com.google.cloud.firestore.*;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
-import com.google.firebase.database.GenericTypeIndicator;
-import jakarta.servlet.Registration;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
-import javax.print.Doc;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

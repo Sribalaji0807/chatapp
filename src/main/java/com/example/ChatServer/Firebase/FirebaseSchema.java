@@ -13,10 +13,11 @@ import java.util.Map;
 public class FirebaseSchema {
     public FirebaseSchema() {
     }
-    public FirebaseSchema(String id,String name,String email){
+    public FirebaseSchema(String id,String email){
         setId(id);
-        setName(name);
+        setName("");
         setEmail(email);
+        setProfileUrl("");
         setContacts_RoomId(new HashMap<>());
         setMailBox(new ArrayList<>());
     }
@@ -49,6 +50,15 @@ public class FirebaseSchema {
     private String name;
     private String email;
 private List mailBox;
+private String profileUrl;
+
+    public String getProfileUrl() {
+        return profileUrl;
+    }
+
+    public void setProfileUrl(String profileUrl) {
+        this.profileUrl = profileUrl;
+    }
 
     public List getMailBox() {
         return mailBox;
