@@ -62,6 +62,7 @@ class _QrWidgetState extends ConsumerState<QrWidget> {
   Widget showQrCode() {
     return QrImageView(
       data: userid!,
+
       version: QrVersions.auto,
       size: 200.0,
       errorStateBuilder: (cxt, err) {
@@ -78,14 +79,29 @@ class _QrWidgetState extends ConsumerState<QrWidget> {
   }
 
   Widget scanQrCode() {
-    return MobileScanner(
-      onDetect: (result) {
-        print(result.barcodes.first.rawValue);
-        getIt<Firebaseservice>().addContacts(result.barcodes.first.rawValue!, userid!);
-        setState(() {
-          currentView = '';
-        });
-      },
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            setState(() {
+              currentView = '';
+            });
+          },
+        ),
+        title: Text('Scan QR Code'),
+      ),
+      body: MobileScanner(
+        onDetect: (result) {
+          final code = result.barcodes.first.rawValue;
+          if (code != null) {
+            getIt<Firebaseservice>().addContacts(code, userid!);
+            setState(() {
+              currentView = '';
+            });
+          }
+        },
+      ),
     );
   }
 }

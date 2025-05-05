@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:chatapp/Schema/FirebaseSchema.dart';
 import 'package:chatapp/ux/Provider.dart';
 import 'package:chatapp/ux/SharedPreferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
@@ -14,7 +16,7 @@ class Firebaseservice {
     _auth = FirebaseAuth.instance;
     _auth.setLanguageCode("en");
   }
-  Future<bool> SignUp(String email, String password, String name) async {
+  Future<bool> SignUp(String email, String password) async {
     UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
@@ -27,12 +29,11 @@ class Firebaseservice {
         body: jsonEncode({
           "email": email,
           "id": userCredential.user!.uid,
-          "name": name,
           "cookie": token,
         }),
       );
       if (response.statusCode == 200) {
-        stateupdation(name, userCredential.user!.uid, token, {});
+        stateupdation("", userCredential.user!.uid, token, {});
         return true;
       }
     }
@@ -63,7 +64,6 @@ class Firebaseservice {
           "email": email,
           "id": userCredential.user!.uid,
           "cookie": token,
-          "name": "",
         }),
       );
       print("response ${response.body}");
@@ -122,6 +122,43 @@ class Firebaseservice {
         body: jsonEncode({"friendid": friendid, "userid": userid}),
       );
       if (response.statusCode == 200) {
+        return true;
+      }
+    } catch (e) {
+      print("error $e");
+    }
+    return false;
+  }
+
+  Future<bool> setProfile(
+    File? file, {
+    required String name,
+    required bool isImage,
+  }) async {
+    try {
+      final refs = ProviderContainer();
+      String userid = refs.read(credentialsProvider).userid!;
+      var request = new http.MultipartRequest(
+        "POST",
+        Uri.parse("${dotenv.env['SERVER_URL']}/api/SetProfile"),
+      );
+      request.fields['name'] = name;
+      request.fields['isImage'] = isImage.toString();
+      request.fields['userid'] = userid;
+      if (isImage) {
+        request.files.add(
+          await http.MultipartFile.fromPath('file', file!.path),
+        );
+      }
+      if (!isImage) {
+        // Add an empty file field if backend expects it
+        request.files.add(
+          http.MultipartFile.fromBytes('file', [], filename: ''),
+        );
+      }
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        refs.read(credentialsProvider.notifier).setUsername(name);
         return true;
       }
     } catch (e) {

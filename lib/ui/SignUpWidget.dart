@@ -1,4 +1,6 @@
+import 'package:chatapp/ui/LoginWidget.dart';
 import 'package:chatapp/ui/Main_page.dart';
+import 'package:chatapp/ui/ProfilePage.dart';
 import 'package:chatapp/ux/FirebaseService.dart';
 import 'package:chatapp/ux/GetIt.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +18,6 @@ class _SignupwidgetState extends ConsumerState<Signupwidget> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController ConfirmpasswordController =
       TextEditingController();
-  final TextEditingController usernameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -32,18 +33,7 @@ class _SignupwidgetState extends ConsumerState<Signupwidget> {
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 30),
-            SizedBox(height: 12),
-            SizedBox(
-              width: fieldWidth,
-              child: TextField(
-                controller: usernameController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: "Name",
-                ),
-              
-              ),
-            ),
+         
             SizedBox(height: 12),
             SizedBox(
               width: fieldWidth,
@@ -92,7 +82,7 @@ class _SignupwidgetState extends ConsumerState<Signupwidget> {
                 ),
                 onPressed: () async {
                   if (emailController.text.isEmpty ||
-                      passwordController.text.isEmpty || usernameController.text.isEmpty || ConfirmpasswordController.text.isEmpty) {
+                      passwordController.text.isEmpty ||  ConfirmpasswordController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text("Please enter email and password"),
@@ -111,8 +101,8 @@ class _SignupwidgetState extends ConsumerState<Signupwidget> {
                   }
                   bool res = await Firebaseservice().SignUp(
                     emailController.text,
-                    passwordController.text,
-                    usernameController.text,
+                    passwordController.text
+                   
                   );
                   if (res) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -126,7 +116,7 @@ class _SignupwidgetState extends ConsumerState<Signupwidget> {
 
                   Navigator.pushAndRemoveUntil(
   context,
-  MaterialPageRoute(builder: (context) => const Main_Page()),
+  MaterialPageRoute(builder: (context) => const ProfilePage()),
   (Route<dynamic> route) => false,
 );                  } else {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -147,7 +137,9 @@ class _SignupwidgetState extends ConsumerState<Signupwidget> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(" have an account?"),
-                TextButton(onPressed: () {}, child: Text("Login")),
+                TextButton(onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => LoginWidget()));
+                }, child: Text("Login")),
               ],
             ),
           ],

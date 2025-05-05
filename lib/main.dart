@@ -39,7 +39,7 @@ class MyApp extends ConsumerWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home:ProfilePage(),
+      home:Signupwidget(),
      // home: user.username == null ? LoginWidget() : const ContactPage(),
       debugShowCheckedModeBanner: false,
     );
