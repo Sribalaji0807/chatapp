@@ -271,7 +271,7 @@ public boolean addDocument(FirebaseSchema user) throws ExecutionException, Inter
                 if(docref.exists()){
                     Map<String,String>map=new HashMap<>();
                     map.put("name",name);
-                    map.put("profileurl",profilename);
+                    map.put("profileUrl",profilename);
                     doc.set(map,SetOptions.merge());
                     return true;
                 }
