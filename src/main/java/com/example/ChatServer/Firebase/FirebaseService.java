@@ -151,6 +151,7 @@ return Contacts;
 
 @PostMapping("/api/AddContacts")
 public boolean AddContacts(@RequestBody AddContactModel body) throws ExecutionException, InterruptedException {
+    System.out.println("userid"+body.getUserId());
     DocumentReference docRefUser = firestore.collection("users").document(body.getUserId());
     DocumentReference docRefFriend = firestore.collection("users").document(body.getFriendId());
 
