@@ -24,6 +24,7 @@ class _SignupwidgetState extends ConsumerState<Signupwidget> {
     final double fieldWidth = MediaQuery.of(context).size.width * 0.7;
     final double fieldButtonWidth = MediaQuery.of(context).size.width * 0.3;
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

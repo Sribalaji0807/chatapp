@@ -19,9 +19,11 @@ class QrWidget extends ConsumerStatefulWidget {
 class _QrWidgetState extends ConsumerState<QrWidget> {
   late String? userid;
   String currentView = '';
+  
+  @override
   void initState() {
     super.initState();
-    userid = ref.read(credentialsProvider).userid!;
+    userid = ref.read(credentialsProvider).userid;
   }
 
   @override
@@ -92,13 +94,16 @@ class _QrWidgetState extends ConsumerState<QrWidget> {
         title: Text('Scan QR Code'),
       ),
       body: MobileScanner(
-        onDetect: (result) {
+        onDetect: (result) async{
           final code = result.barcodes.first.rawValue;
-          if (code != null) {
-            getIt<Firebaseservice>().addContacts(code, userid!);
-            setState(() {
-              currentView = '';
-            });
+          print("code ${code}");
+          if (code != null ) {
+          await getIt<Firebaseservice>().addContacts(code, userid!);
+           Future.delayed(Duration(milliseconds: 300), () {
+      setState(() {
+        currentView = '';
+      });
+    });
           }
         },
       ),

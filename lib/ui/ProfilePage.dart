@@ -21,7 +21,8 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Profile")),
-      body: Column(
+      body: SafeArea(child: SingleChildScrollView(
+        child:Column(
         children: [
           Container(
             width: double.infinity,
@@ -164,6 +165,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ],
       ),
-    );
+ 
+      ))   );
   }
 }

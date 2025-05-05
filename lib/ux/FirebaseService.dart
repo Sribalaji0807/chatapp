@@ -116,12 +116,14 @@ class Firebaseservice {
 
   Future<bool> addContacts(String friendid, String userid) async {
     try {
+      print("started");
       final response = await http.post(
         Uri.parse("${dotenv.env['SERVER_URL']}/api/AddContacts"),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"friendid": friendid, "userid": userid}),
+        body: jsonEncode({"friendId": friendid, "userId": userid}),
       );
       if (response.statusCode == 200) {
+        print("added");
         return true;
       }
     } catch (e) {
