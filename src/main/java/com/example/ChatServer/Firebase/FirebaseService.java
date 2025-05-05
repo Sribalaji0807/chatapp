@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.database.GenericTypeIndicator;
+import jakarta.servlet.Registration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +37,7 @@ public class FirebaseService {
         System.out.println(body.getId());
         FirebaseToken decodedToken = firebaseAuth.verifyIdToken(body.getCookie());
         if(decodedToken!=null){
-            return addDocument(new FirebaseSchema(decodedToken.getUid(), body.getName(),body.getEmail()));
+            return addDocument(new FirebaseSchema(decodedToken.getUid(),body.getEmail()));
         }
         return false;
     } catch (Exception e) {
@@ -46,6 +47,7 @@ public class FirebaseService {
     }
 
 }
+
 //@PostMapping("/api/Login")
 //public FirebaseSchema Login(@RequestBody String data) {
 //    try {
@@ -262,8 +264,25 @@ public boolean addDocument(FirebaseSchema user) throws ExecutionException, Inter
             return schema;
         } else {
             return null; // Handle case where document doesn't exist
+        }}
+        public Boolean setProfile(String profilename,String name,String userid){
+            try{
+                DocumentReference doc=firestore.collection("users").document(userid);
+                DocumentSnapshot docref=doc.get().get();
+                if(docref.exists()){
+                    Map<String,String>map=new HashMap<>();
+                    map.put("name",name);
+                    map.put("profileurl",profilename);
+                    doc.set(map,SetOptions.merge());
+                    return true;
+                }
+                return false;
+
+            }
+            catch (Exception e){}
+            return false;
         }
-    }
+
 
 
 

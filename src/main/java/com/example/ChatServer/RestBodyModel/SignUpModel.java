@@ -5,7 +5,6 @@ package com.example.ChatServer.RestBodyModel;
 public class SignUpModel {
 
 
-    private String name;
 private String email;
 private String id;
 
@@ -39,13 +38,6 @@ private String id;
     private String cookie;
 
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 
 
 
