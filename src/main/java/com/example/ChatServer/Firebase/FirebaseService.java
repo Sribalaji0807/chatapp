@@ -9,7 +9,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -23,10 +26,13 @@ import java.util.concurrent.ExecutionException;
 @RestController
 public class FirebaseService {
 
+    private static final Logger log = LoggerFactory.getLogger(FirebaseService.class);
     @Autowired
     public Firestore firestore;
     @Autowired
     public FirebaseAuth firebaseAuth;
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
 @PostMapping("/api/SignUp")
     public boolean SignUp(@RequestBody SignUpModel body){
@@ -132,19 +138,33 @@ catch (FirestoreException  | InterruptedException e){
 }
 
 @GetMapping("/api/GetContacts")
-public Map<String,String> getContacts(@RequestParam String userid){
+public Map<String,List> getContacts(@RequestParam String userid){
     Map<String,String> Contacts;
     try {
         DocumentReference docRef=firestore.collection("users").document(userid);
         DocumentSnapshot snapshot=docRef.get().get();
         if(snapshot.exists()){
             Map<String,Object> rec=snapshot.getData();
+
             Contacts = (Map<String, String>) rec.get("contacts_RoomId");
-return Contacts;
+            Map<String,List>result=new HashMap<>();
+            for(Map.Entry<String,String>entry : Contacts.entrySet()) {
+                DocumentReference TempDocRef = firestore.collection("users").document(entry.getValue());
+                DocumentSnapshot TempSnapShot = TempDocRef.get().get();
+                if (snapshot.exists()) {
+                    ArrayList<String> arr = new ArrayList<>();
+                    Map<String, Object> TempRec = TempSnapShot.getData();
+                    String profileUrl = (String) TempRec.get("profileUrl");
+                    arr.add(entry.getValue());
+                    arr.add(profileUrl!=null?profileUrl:"");
+                    result.put(entry.getKey(), arr);
+                }
+            }
+return result;
         }
     }
     catch (FirestoreException | InterruptedException | ExecutionException e){
-        System.out.println(e);
+        log.error(String.valueOf(e));
     }
     return null;
 }
@@ -178,12 +198,16 @@ public boolean AddContacts(@RequestBody AddContactModel body) throws ExecutionEx
         updateMap.put("contacts_RoomId", contacts);
 
         docRefUser.set(updateMap, SetOptions.merge());
+        messagingTemplate.convertAndSendToUser(body.getUserId(),"/queue/contacts",updateMap);
+
         updateMap.remove("contacts_RoomId");
         contacts1.put(docData.get("name").toString(), body.getUserId());
 
 
         updateMap.put("contacts_RoomId", contacts1);
         docRefFriend.set(updateMap, SetOptions.merge());
+        messagingTemplate.convertAndSendToUser(body.getFriendId(),"/queue/contacts",updateMap);
+
 
 return true;
     }
