@@ -18,11 +18,11 @@ public class WebSocketEventListener {
    @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event){
        StompHeaderAccessor accessor=StompHeaderAccessor.wrap(event.getMessage());
-       String username=accessor.getFirstNativeHeader("username");
-      System.out.println(username);
+       String userid=accessor.getFirstNativeHeader("userid");
+      System.out.println(userid);
        String sessionId=accessor.getSessionId();
-       if(username!=null){
-          session.addSession(username,sessionId);
+       if(userid!=null){
+          session.addSession(userid,sessionId);
        }
    }
    @EventListener
