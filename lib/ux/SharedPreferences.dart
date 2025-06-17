@@ -26,6 +26,11 @@ String findContacts(String name) {
 Map<String, String> contact = (jsonDecode(prefs.getString('Contacts')!) as Map<String, dynamic>).cast<String, String>();
 return contact[name]!;
 }
+void setContacts(Map<String, String> contacts) {
+  Map<String, String> contact = (jsonDecode(prefs.getString('Contacts')!) as Map<String, dynamic>).cast<String, String>();
+  contact.addAll(contacts);
+  prefs.setString('Contacts', json.encode(contact));
+}
   void setUsername(String username) {
     prefs.setString('username', username);
   }
@@ -41,5 +46,6 @@ return contact[name]!;
     prefs.remove('username');
     prefs.remove('token');
     prefs.remove('userid');
+    prefs.remove('Contacts');
   }
 }

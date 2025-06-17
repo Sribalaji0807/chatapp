@@ -5,6 +5,7 @@ import 'package:chatapp/db/MessageSchema.dart';
 import 'package:chatapp/ux/Chat_Provider.dart';
 import 'package:chatapp/ux/HiveService.dart';
 import 'package:chatapp/ux/Provider.dart';
+import 'package:chatapp/ux/SharedPreferences.dart';
 import 'package:chatapp/ux/SocketConnection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
@@ -30,12 +31,13 @@ class _MessagePageState extends ConsumerState<MessagePage> {
   final socket = GetIt.instance.get<SocketConnection>();
   late Stream<List<MessageSchema>> messageBox;
 
-  final SharedPreferences prefs = GetIt.instance.get<SharedPreferences>();
+  final SharedPreferencesService prefs =
+      GetIt.instance.get<SharedPreferencesService>();
   @override
   void initState() {
     super.initState();
-    username = prefs.getString('username');
-    userid = prefs.getString('userid');
+    username = prefs.username;
+    userid = prefs.userid;
 
     _setupBox();
   }
@@ -47,18 +49,24 @@ class _MessagePageState extends ConsumerState<MessagePage> {
       final stream = HiveService().getMessagesStream(
         "$userid${widget.friendid}",
       );
-   _messageSubscription = stream.listen((messages) {
-  setState(() {
-    _messages = messages.map((element) {
-      return types.TextMessage(
-        text: element.message,
-        author: types.User(id: element.sendBy),
-        createdAt: DateTime.parse(element.time).millisecondsSinceEpoch,
-        id: const Uuid().v4(),
-      );
-    }).toList().reversed.toList(); // Optional: reverse to show latest at bottom
-  });
-});
+      _messageSubscription = stream.listen((messages) {
+        setState(() {
+          _messages =
+              messages
+                  .map((element) {
+                    return types.TextMessage(
+                      text: element.message,
+                      author: types.User(id: element.sendBy),
+                      createdAt:
+                          DateTime.parse(element.time).millisecondsSinceEpoch,
+                      id: const Uuid().v4(),
+                    );
+                  })
+                  .toList()
+                  .reversed
+                  .toList(); // Optional: reverse to show latest at bottom
+        });
+      });
     } catch (e) {
       print("Error setting up message box: $e");
     }
@@ -87,38 +95,38 @@ class _MessagePageState extends ConsumerState<MessagePage> {
   //     print("Error loading messages: $e");
   //   }
   // }
-void _addMessage(types.Message message) {
-  try {
-    setState(() {
-      _messages.add(message);
-    });
-  } catch (e) {
-    print("Error adding message: $e");
+  void _addMessage(types.Message message) {
+    try {
+      setState(() {
+        _messages.add(message);
+      });
+    } catch (e) {
+      print("Error adding message: $e");
+    }
   }
-}
-
 
   void _handleSendPressed(String text) async {
     if (text.trim().isEmpty) return;
 
+    print("username $username");
     Map<String, String> Send = new Map();
     Send["message"] = text;
-    Send["sendTo"] = widget.friend!;
-    Send["sendBy"] = username!;
+    Send["sendTo"] = widget.friendid!;
+    Send["sendBy"] = userid!;
     Send["time"] = DateTime.now().toIso8601String();
     await HiveService().setMessage(
       "${userid}${widget.friendid}",
       MessageSchema(
-       Send["message"]!,
+        Send["message"]!,
         Send["sendBy"]!,
         Send["sendTo"]!,
         Send["time"]!,
       ),
     );
-    
+
     final textMessage = types.TextMessage(
       text: text,
-      author: types.User(id: username!),
+      author: types.User(id: userid!),
       createdAt: DateTime.now().microsecondsSinceEpoch,
       id: const Uuid().v4(),
     );
@@ -147,31 +155,34 @@ void _addMessage(types.Message message) {
       body: Chat(
         messages: _messages,
         onSendPressed: (_) {},
-        user: types.User(id: username!),
-showUserNames: true,
-        customBottomWidget: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _controller,
-                  decoration: InputDecoration(
-                    hintText: 'Type your message',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+        user: types.User(id: userid!),
+        showUserNames: true,
+        customBottomWidget: SafeArea(
+          child: Container(
+            margin: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(
+                      hintText: 'Type your message',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: () {
-                  _handleSendPressed(_controller.text);
-                },
-                child: const Icon(Icons.send),
-              ),
-            ],
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    _handleSendPressed(_controller.text);
+                  },
+                  child: const Icon(Icons.send),
+                ),
+              ],
+            ),
           ),
         ),
       ),

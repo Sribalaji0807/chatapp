@@ -1,28 +1,32 @@
 import 'dart:io';
+import 'package:chatapp/ui/LoadingWidget.dart';
 import 'package:chatapp/ui/Main_page.dart';
 import 'package:chatapp/ux/FirebaseService.dart';
 import 'package:chatapp/ux/GetIt.dart';
+import 'package:chatapp/ux/Provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ProfilePage extends StatefulWidget {
+class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  ConsumerState<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends ConsumerState<ProfilePage> {
   File? _image;
   int _themeValue = 1;
   final TextEditingController _nameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final loading=ref.watch(credentialsProvider).loading;
     return Scaffold(
       appBar: AppBar(title: const Text("Profile")),
       body: SafeArea(child: SingleChildScrollView(
-        child:Column(
+        child: loading! ? Center(child: LoadingWidget(),) :Column(
         children: [
           Container(
             width: double.infinity,
@@ -128,6 +132,7 @@ class _ProfilePageState extends State<ProfilePage> {
             onPressed: () async {
               final name = _nameController.text.trim();
               if (name.isNotEmpty) {
+                ref.read(credentialsProvider.notifier).setLoading(true);
                 bool? result;
                 if (_image == null ) {
                   result = await getIt<Firebaseservice>().setProfile(
@@ -143,6 +148,7 @@ class _ProfilePageState extends State<ProfilePage> {
                    name: name,
                   );
                 }
+                  ref.read(credentialsProvider.notifier).setLoading(false);
                 if (result!) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(

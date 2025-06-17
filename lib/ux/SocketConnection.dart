@@ -1,33 +1,31 @@
 import 'package:chatapp/Schema/MessageSchemaServer.dart';
 import 'package:chatapp/db/MessageSchema.dart';
-import 'package:chatapp/ux/Chat_Provider.dart';
 import 'package:chatapp/ux/GetIt.dart';
 import 'package:chatapp/ux/HiveService.dart';
 import 'package:chatapp/ux/Provider.dart';
 import 'package:chatapp/ux/SharedPreferences.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'dart:convert';
 
 class SocketConnection {
+  final _prefs = getIt<SharedPreferencesService>();
   late StompClient stompClient;
   late String? username;
   late String? userid;
-  late ProviderContainer ref;
+  late ProviderContainer ref = ProviderContainer();
   SocketConnection() {
-    ref = ProviderContainer();
     username = ref.read(credentialsProvider).username;
     userid = ref.read(credentialsProvider).userid;
+    if (userid == null) return;
     stompClient = StompClient(
       config: StompConfig(
         url: "${dotenv.env["SOCKET_URL"]}/ws",
         onConnect: onConnectCallback,
         webSocketConnectHeaders: {'Content-Type': 'application/json'},
-        stompConnectHeaders: {'username': username!},
+        stompConnectHeaders: {'userid': userid ?? ""},
         onWebSocketError: (dynamic error) => print("WebSocket Error: $error"),
         onStompError: (StompFrame frame) => print("STOMP Error: ${frame.body}"),
         onDisconnect: (frame) => print("Disconnected"),
@@ -45,16 +43,14 @@ class SocketConnection {
         "${dotenv.env["SERVER_URL"]}/api/StoredMessages?userid=$userid",
       ),
     );
-    print(response.body);
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       final messages = MessageSchemaServer.fromJsonList(
         jsonDecode(response.body),
       );
-      print(messages);
       if (messages.length > 0) {
         String sender = prefs.findContacts(messages[0].sendBy);
         for (var message in messages) {
-        await  HiveService().setMessage(
+          await HiveService().setMessage(
             "${userid}${sender}",
             MessageSchema(
               message.message,
@@ -67,17 +63,15 @@ class SocketConnection {
       }
     }
     stompClient.subscribe(
-      destination: '/user/$username/queue/messages',
+      destination: '/user/$userid/queue/messages',
       callback: (StompFrame frame) {
         if (frame.body != null) {
           try {
             dynamic rawBody = frame.body;
             if (rawBody is List) {
               try {
-                print("rawBody is List");
                 rawBody = utf8.decode(rawBody.cast<int>());
               } catch (e) {
-                print("Failed to decode rawBody: $e");
                 return;
               }
             }
@@ -91,17 +85,13 @@ class SocketConnection {
             //     return;
             //   }
             // }
-            print("rawBody ${rawBody}");
             final Map<String, dynamic> messageJson = jsonDecode(rawBody);
-            print("messageJson: ${messageJson["message"]}");
             final message = MessageSchemaServer.fromJson(
               (messageJson as Map<String, dynamic>).cast<String, String>(),
             );
-            print("message: ${message.message}");
-            String senderid = prefs.findContacts(
-              message.sendTo != username ? message.sendTo : message.sendBy,
-            );
-            print("sender id ${senderid}");
+            String senderid =
+                message.sendTo != userid ? message.sendTo : message.sendBy;
+
             HiveService().setMessage(
               "${userid}${senderid}",
               MessageSchema(
@@ -111,19 +101,46 @@ class SocketConnection {
                 message.time,
               ),
             );
-            print("message added");
+          } catch (e) {
+            return;
+          }
+        }
+      },
+    );
+    stompClient.subscribe(
+      destination: "/user/$userid/queue/Contacts",
+      callback: (StompFrame frame) {
+        if (frame.body != null) {
+          try {
+            dynamic rawBody = frame.body;
+            if (rawBody is List) {
+              try {
+                rawBody = utf8.decode(rawBody.cast<int>());
+              } catch (e) {
+                return;
+              }
+            }
+            final Map<String, dynamic> messageJson = jsonDecode(rawBody);
+            final Map<String, String> Contacts = rawBody as Map<String, String>;
+            _prefs.setContacts(Contacts);
+            ref.read(credentialsProvider.notifier).setContacts(Contacts);
           } catch (e) {
             print("Error processing message: $e");
           }
         }
       },
     );
-    print("user connected");
   }
 
   void publishMessage(Map<String, String?> message) {
     if (stompClient.connected) {
       stompClient.send(destination: "/app/Exchange", body: jsonEncode(message));
+    }
+  }
+
+  void dispose() {
+    if (stompClient.connected) {
+      stompClient.deactivate();
     }
   }
 }

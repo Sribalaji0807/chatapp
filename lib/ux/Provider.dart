@@ -6,6 +6,9 @@ import 'package:get_it/get_it.dart';
 class Credentials extends Notifier<CredentialsSchema> {
     late final SharedPreferencesService _prefs;
 
+
+ 
+
   @override
   CredentialsSchema build() {
     _prefs = GetIt.instance.get<SharedPreferencesService>();
@@ -13,16 +16,26 @@ class Credentials extends Notifier<CredentialsSchema> {
       username: _prefs.username,
       userid: _prefs.userid,
       token: _prefs.token,
+      loading: false,
+      contacts: {}
+   
     );
   }
-
-  void update(String username, String userid,String token) {
+  
+void setContacts(Map<String, String> map){
+  for (var key in map.keys) {
+    state.contacts![key] = map[key]!;
+  }
+}
+  Future<void> update(String username, String userid,String token,Map<String,String> contacts) async {
 _prefs.setUsername(username);
     _prefs.setUserid(userid);
     if (token != null) _prefs.setToken(token);
-    state = CredentialsSchema(username: username, userid: userid, token: token ?? state.token);
+    state = CredentialsSchema(username: username, userid: userid, token: token ?? state.token,loading:false,contacts: contacts);
   }
-
+void setLoading(bool loading){
+  state = CredentialsSchema(username: state.username, userid: state.userid, token: state.token,loading:loading);
+}
   void setUsername(String username) {
     state = CredentialsSchema(username: username, userid: state.userid);
   }

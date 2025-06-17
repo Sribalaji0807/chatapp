@@ -33,7 +33,7 @@ class Firebaseservice {
         }),
       );
       if (response.statusCode == 200) {
-        stateupdation("", userCredential.user!.uid, token, {});
+        await stateupdation("", userCredential.user!.uid, token, {});
         return true;
       }
     }
@@ -41,45 +41,57 @@ class Firebaseservice {
   }
 
   Future<bool> Login(String email, String password) async {
-    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    if (userCredential.user != null) {
-      FirebaseAuth.instance.authStateChanges().listen((user) {
-        if (user != null) {
-          // The user is signed in
-          print('User signed in: ${user.email}');
-        } else {
-          // The user is signed out
-          print('User signed out');
-        }
-      });
-      final token = await userCredential.user!.getIdToken() as String;
-      print("${dotenv.env['SERVER_URL']}/api/Login");
-      final response = await http.post(
-        Uri.parse("${dotenv.env["SERVER_URL"]}/api/Login"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "email": email,
-          "id": userCredential.user!.uid,
-          "cookie": token,
-        }),
+    try {
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
       );
-      print("response ${response.body}");
-      if (response.statusCode == 200) {
-        final FirebaseSchema user = FirebaseSchema.fromJson(
-          jsonDecode(response.body) as Map<String, dynamic>,
-        );
-        stateupdation(user.getName, user.getId, token, user.getContacts_RoomId);
-
-        return true;
+      if (userCredential.user == null) {
+        return false;
       }
+      if (userCredential.user != null) {
+        FirebaseAuth.instance.authStateChanges().listen((user) {
+          if (user != null) {
+            print('User signed in: ${user.email}');
+          } else {
+            print('User signed out');
+          }
+        });
+        final token = await userCredential.user!.getIdToken() as String;
+        print("${dotenv.env['SERVER_URL']}/api/Login");
+        final response = await http.post(
+          Uri.parse("${dotenv.env["SERVER_URL"]}/api/Login"),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({
+            "email": email,
+            "id": userCredential.user!.uid,
+            "cookie": token,
+          }),
+        );
+        print("response ${response.body}");
+        if (response.statusCode == 200) {
+          final FirebaseSchema user = FirebaseSchema.fromJson(
+            jsonDecode(response.body) as Map<String, dynamic>,
+          );
+          await stateupdation(
+            user.getName,
+            user.getId,
+            token,
+            user.getContacts_RoomId,
+          );
+
+          return true;
+        }
+      }
+    } catch (e) {
+      print("login failed $e");
+      return false;
     }
+
     return false;
   }
 
-  void stateupdation(
+  Future<void> stateupdation(
     String username,
     String userid,
     String token,
@@ -92,12 +104,12 @@ class Firebaseservice {
       userid,
     );
     final container = ProviderContainer();
-    container
+   await container
         .read(credentialsProvider.notifier)
-        .update(username, userid, token);
+        .update(username, userid, token, contacts);
   }
 
-  Future<Map<String, String>> getContacts() async {
+  Future<Map<String, List>> getContacts() async {
     final refs = ProviderContainer();
     final userid = refs.read(credentialsProvider).userid;
     final response = await http.get(
@@ -106,7 +118,7 @@ class Firebaseservice {
     print(response.body);
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       Map<String, dynamic> jsonResponse = json.decode(response.body);
-      Map<String, String> contacts = Map<String, String>.from(jsonResponse);
+      Map<String, List> contacts = Map<String, List>.from(jsonResponse);
       print("contacts ${contacts}");
       return contacts;
     } else {
