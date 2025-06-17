@@ -73,16 +73,19 @@ cd springboot-backend
 
 ## 📸 Screenshots
 
-### LoginScreen
-![LoginScreen](assets/login.jpeg)
+<h3>🔐 Login Screen</h3>
+<img src="assets/login.jpeg" alt="Login Screen" width="400"/>
 
-### SignUpScreen
-![SignUpScreen](assets/signup.jpeg)
+<h3>📝 Sign Up Screen</h3>
+<img src="assets/signup.jpeg" alt="Sign Up Screen" width="400"/>
 
-### Contacts
-![Contacts](assets/contacts.jpeg)
+<h3>👥 Contacts</h3>
+<img src="assets/contacts.jpeg" alt="Contacts" width="400"/>
 
-### chats
-![user1](assets/user1chat.jpeg) ![user2](assets/user2chat.jpeg)
+<h3>💬 Chats (User 1 & User 2)</h3>
+<p float="left">
+  <img src="assets/user1chat.jpeg" alt="User 1 Chat" width="300"/>
+  <img src="assets/user2chat.jpeg" alt="User 2 Chat" width="300"/>
+</p>
 
-![user2chat](assets/user2chat2.jpeg)
+<img src="assets/user2chat2.jpeg" alt="User 2 Chat Continued" width="400"/>
